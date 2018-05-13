@@ -1,5 +1,5 @@
 # train and validation dataset
 /data
 
-# DS_Sotre
-/.DS_Store
+# OS generated files
+.DS_Store
