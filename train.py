@@ -26,15 +26,25 @@ else:
 train_data_path = './data/train'
 validation_data_path = './data/validation'
 
+train_data_len = 0
+validation_data_len = 0
+
+for _, _, files in os.walk(train_data_path):
+	train_data_len += len(files)
+
+for _, _, files in os.walk(validation_data_path):
+	validation_data_len += len(files)
+
 img_height = 150 
 img_width = 150
 image_shape = (img_height, img_width, 3)
 weight_decay = 0.0005
 
 classes_num = 13
-batch_size = 32
-samples_per_epoch = 300
-validation_steps = 90
+batch_size = 16
+samples_per_epoch = train_data_len // batch_size
+validation_steps = validation_data_len // batch_size
+
 
 # VGG16
 def build_model(image_shape, weight_decay, classes_num):
@@ -110,10 +120,10 @@ def build_model(image_shape, weight_decay, classes_num):
     return model
 
 # create model
-model = build_model(image_shape, weight_decay, classes_num)
-optimizer = SGD(lr=1e-3, momentum=0.9, nesterov=True)
-model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-model.summary()
+# model = build_model(image_shape, weight_decay, classes_num)
+# optimizer = SGD(lr=1e-3, momentum=0.9, nesterov=True)
+# model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+# model.summary()
 
 
 # Data pre_processing
