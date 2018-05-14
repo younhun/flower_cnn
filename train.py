@@ -11,8 +11,7 @@ DEV = False
 argvs = sys.argv
 argc = len(argvs)
 
-
-if drgc > 1 and (argvs[1] == '--development' or argvs[1] == '-d'):
+if argc > 1 and (argvs[1] == '--development' or argvs[1] == '-d'):
 	DEV = True
 
 if DEV:
@@ -31,6 +30,21 @@ lr = 0.0004
 batch_size = 32
 samples_per_epoch = 1000
 validation_steps = 300
+
+# model = Sequential()
+# model.add(Conv2D(32, (3, 3), padding ="same", input_shape=(img_width, img_height, 3)))
+# model.add(Activation("relu"))
+# model.add(MaxPooling2D(2, 2))
+
+# model.add(Conv2D(64, (2, 2), padding ="same"))
+# model.add(Activation("relu"))
+# model.add(MaxPooling2D(2, 2))
+
+# model.add(Flatten())
+# model.add(Dense(256))
+# model.add(Activation("relu"))
+# model.add(Dropout(0.5))
+# model.add(Dense(classes_num, activation='softmax'))
 
 # VGG16
 model = Sequential()
@@ -67,12 +81,12 @@ model.add(Dropout(0.5,name='dropout2'))
 model.add(Dense(classes_num, activation='softmax', name='predictions'))
 
 
-
+# model training 과정
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizers.RMSprop(lr=lr),
               metrics=['accuracy'])
 
-# Data 회전등 pre_processing
+# Data pre_processing
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
     shear_range=0.2,
@@ -105,6 +119,7 @@ log_dir = './tf-log/'
 tb_cb = callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0)
 cbks = [tb_cb]
 
+# training model with generator
 model.fit_generator(
     train_generator,
     steps_per_epoch=samples_per_epoch,
@@ -113,6 +128,7 @@ model.fit_generator(
     callbacks=cbks,
     validation_steps=validation_steps)
 
+# Save model
 target_dir = './models/'
 if not os.path.exists(target_dir):
   os.mkdir(target_dir)

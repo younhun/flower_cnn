@@ -1,6 +1,9 @@
 # train and validation dataset
 /data
 
+# trained model
+/models
+
 # OS generated files
 */.DS_Store
 .DS_Store
