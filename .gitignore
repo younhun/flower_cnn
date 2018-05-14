@@ -4,7 +4,11 @@
 # trained model
 /models
 
+# tensorflow log
+/tf-log
+
 # OS generated files
 */.DS_Store
 .DS_Store
 .DS_Store?
+.python-version
