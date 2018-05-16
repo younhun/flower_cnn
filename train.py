@@ -3,12 +3,14 @@ import os
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.models import Sequential
-from keras.layers import Dropout, Flatten, Dense, Activation
-from keras.layers.convolutional import Conv2D, MaxPooling2D
+from keras.models import Model
+from keras.layers import Dropout, Flatten, Dense, Activation, BatchNormalization
+from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
 from keras import callbacks
-from keras.optimizers import SGD
-from keras.applications.vgg16 import VGG16
+from keras.optimizers import SGD, Adadelta, Adagrad, Adam
+from keras import applications
 from keras import regularizers
+
 
 DEV = False
 argvs = sys.argv
@@ -18,9 +20,9 @@ if argc > 1 and (argvs[1] == '--development' or argvs[1] == '-d'):
 	DEV = True
 
 if DEV:
-	epochs = 20
+	epochs = 2
 else:
-	epochs = 100
+	epochs = 20
 
 
 train_data_path = './data/train'
@@ -35,105 +37,76 @@ for _, _, files in os.walk(train_data_path):
 for _, _, files in os.walk(validation_data_path):
 	validation_data_len += len(files)
 
-img_height = 150 
-img_width = 150
-image_shape = (img_height, img_width, 3)
-weight_decay = 0.0005
+img_height = 128
+img_width = 128
+input_shape = (img_height, img_width, 3)
+chanDim = -1
 
-classes_num = 13
-batch_size = 16
-samples_per_epoch = train_data_len // batch_size
-validation_steps = validation_data_len // batch_size
+classes_num = 6
+batch_size = 32
+# samples_per_epoch = train_data_len // batch_size
+samples_per_epoch = 100
+# validation_steps = validation_data_len // batch_size
+validation_steps = 30
 
 
-# VGG16
-def build_model(image_shape, weight_decay, classes_num):
-    model = Sequential()
-    weight_decay = weight_decay
+lr = 0.0004
 
-    model.add(Conv2D(64, (3, 3), padding='same',
-                     input_shape=image_shape, kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.3))
+model = Sequential()
 
-    model.add(Conv2D(64, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
+model.add(Conv2D(32, (3, 3), padding="same", input_shape=input_shape))
+model.add(Activation("relu"))
+model.add(BatchNormalization(axis=chanDim))
+model.add(MaxPooling2D(pool_size=(3, 3)))
+model.add(Dropout(0.25))
 
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), padding="same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization(axis=chanDim))
+model.add(Conv2D(64, (3, 3), padding="same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization(axis=chanDim))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
 
-    model.add(Conv2D(128, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.4))
+# (CONV => RELU) * 2 => POOL
+model.add(Conv2D(128, (3, 3), padding="same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization(axis=chanDim))
+model.add(Conv2D(128, (3, 3), padding="same"))
+model.add(Activation("relu"))
+model.add(BatchNormalization(axis=chanDim))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Dropout(0.25))
 
-    model.add(Conv2D(128, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
+# first (and only) set of FC => RELU layers
+model.add(Flatten())
+model.add(Dense(1024))
+model.add(Activation("relu"))
+model.add(BatchNormalization())
+model.add(Dropout(0.5))
 
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+# use a *softmax* activation for single-label classification
+# and *sigmoid* activation for multi-label classification
+model.add(Dense(classes_num))
+model.add(Activation('softmax'))
 
-    model.add(Conv2D(256, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.4))
+opt = Adam(lr=1e-3, decay=1e-3 / epochs)
 
-    model.add(Conv2D(256, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(256, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(512, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(512, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.4))
-
-    model.add(Conv2D(512, (3, 3), padding='same', kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
-
-    model.add(Flatten())
-    model.add(Dense(512, kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Activation('relu'))
-
-    model.add(Dropout(0.5))
-    model.add(Dense(classes_num))
-    model.add(Activation('softmax'))
-    return model
-
-# create model
-# model = build_model(image_shape, weight_decay, classes_num)
-# optimizer = SGD(lr=1e-3, momentum=0.9, nesterov=True)
-# model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-# model.summary()
-
+model.compile(loss="binary_crossentropy", optimizer=opt,
+	metrics=["accuracy"])
 
 # Data pre_processing
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
     shear_range=0.2,
     zoom_range=0.2,
     horizontal_flip=True)
 
-test_datagen = ImageDataGenerator(rescale=1. / 255)
+test_datagen = ImageDataGenerator(rescale=1. /255)
+
 
 train_generator = train_datagen.flow_from_directory(
     train_data_path,
@@ -146,7 +119,6 @@ validation_generator = test_datagen.flow_from_directory(
     target_size=(img_height, img_width),
     batch_size=batch_size,
     class_mode='categorical')
-
 
 # Tensorboard log
 log_dir = './tf-log/'
@@ -163,7 +135,6 @@ model.fit_generator(
     callbacks=cbks,
     validation_data=validation_generator,
     validation_steps=validation_steps,
-    max_queue_size=3
 )
 
 # Save model
