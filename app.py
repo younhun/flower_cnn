@@ -6,8 +6,6 @@ from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from keras.models import Sequential, load_model
 import numpy as np
 import argparse
-import imutils
-import cv2
 import time
 import uuid
 import base64
