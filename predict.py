@@ -3,25 +3,39 @@ import numpy as np
 from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from keras.models import Sequential, load_model
 
-img_width, img_height = 128, 128
+img_width = 224
+img_height = 224
+
 model_path = './models/model.h5'
-# model_weights_path = './models/weights.h5'
+model_weights_path = './models/weights.h5'
 model = load_model(model_path)
-# model.load_weights(model_weights_path)
+model.load_weights(model_weights_path)
+
+"""
+folder name
+0 : 개나리
+1 : 동백
+2 : 목화
+3 : 백합
+4 : 안투리움
+5 : 장미
+"""
+
 
 def predict(file):
   x = load_img(file, target_size=(img_width,img_height))
   x = img_to_array(x)
   x = np.expand_dims(x, axis=0)
-  print(x.shape)
-
+  
   # one-hot encoding
   array = model.predict(x)
   result = array[0]
+  print(result)
   
   # one-hot encoding 결과 값 추출
   # 각 결과 값 label에 matching
   answer = np.argmax(result)
+  print(answer)
   if answer == 0:
     print("Label: 개나리")
   elif answer == 1:
@@ -51,7 +65,7 @@ n5_t = 0
 n5_f = 0
 
 
-for i, ret in enumerate(os.walk('./test-data/개나리')):
+for i, ret in enumerate(os.walk('./test-data/0')):
   for i, filename in enumerate(ret[2]):
     # ret[2] = folder에 들어있는 images들을 가리킨다.
     
@@ -66,59 +80,59 @@ for i, ret in enumerate(os.walk('./test-data/개나리')):
     
     # result에 따라 true, false 
     if result == 0:
-      n0_t += 1
+      n0_t = n0_t + 1
     else:
-      n0_f += 1
+      n0_f = n0_t + 1
 
-for i, ret in enumerate(os.walk('./test-data/동백')):
+for i, ret in enumerate(os.walk('./test-data/1')):
   for i, filename in enumerate(ret[2]):
     if filename.startswith("."):
       continue
     result = predict(ret[0] + '/' + filename)
     if result == 1:
-      n1_t += 1
+      n1_t = n1_t + 1
     else:
-      n1_f += 1
+      n1_f = n1_f + 1
 
-for i, ret in enumerate(os.walk('./test-data/목화')):
+for i, ret in enumerate(os.walk('./test-data/2')):
   for i, filename in enumerate(ret[2]):
     if filename.startswith("."):
       continue
     result = predict(ret[0] + '/' + filename)
     if result == 1:
-      n2_t += 1
+      n2_t = n2_t + 1
     else:
-      n2_f += 1
+      n2_f = n2_f + 1
 
-for i, ret in enumerate(os.walk('./test-data/백합')):
+for i, ret in enumerate(os.walk('./test-data/3')):
   for i, filename in enumerate(ret[2]):
     if filename.startswith("."):
       continue
     result = predict(ret[0] + '/' + filename)
     if result == 1:
-      n3_t += 1
+      n3_t = n3_t + 1
     else:
-      n3_f += 1
+      n3_f = n3_f + 1
 
-for i, ret in enumerate(os.walk('./test-data/안투리움')):
+for i, ret in enumerate(os.walk('./test-data/4')):
   for i, filename in enumerate(ret[2]):
     if filename.startswith("."):
       continue
     result = predict(ret[0] + '/' + filename)
     if result == 2:
-      n4_t += 1
+      n4_t = n4_t + 1
     else:
-      n4_f += 1
+      n4_f = n4_f + 1
 
-for i, ret in enumerate(os.walk('./test-data/장미')):
+for i, ret in enumerate(os.walk('./test-data/5')):
   for i, filename in enumerate(ret[2]):
     if filename.startswith("."):
       continue
     result = predict(ret[0] + '/' + filename)
     if result == 2:
-      n5_t += 1
+      n5_t = n5_t +  1
     else:
-      n5_f += 1
+      n5_f = n5_f + 1
 
 # """
 # Check metrics

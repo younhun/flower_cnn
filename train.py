@@ -22,7 +22,7 @@ if argc > 1 and (argvs[1] == '--development' or argvs[1] == '-d'):
 if DEV:
 	epochs = 2
 else:
-	epochs = 20
+	epochs = 100
 
 
 train_data_path = './data/train'
@@ -32,69 +32,111 @@ train_data_len = 0
 validation_data_len = 0
 
 for _, _, files in os.walk(train_data_path):
-	train_data_len += len(files)
+	train_data_len = train_data_len + len(files)
 
 for _, _, files in os.walk(validation_data_path):
-	validation_data_len += len(files)
+	validation_data_len = validation_data_len + len(files)
 
-img_height = 128
-img_width = 128
+img_height = 180
+img_width = 200
 input_shape = (img_height, img_width, 3)
 chanDim = -1
 
 classes_num = 6
-batch_size = 32
-# samples_per_epoch = train_data_len // batch_size
-samples_per_epoch = 100
-# validation_steps = validation_data_len // batch_size
-validation_steps = 30
-
-
-lr = 0.0004
+batch_size = 16
+samples_per_epoch = train_data_len // batch_size
+validation_steps = validation_data_len // batch_size
 
 model = Sequential()
+weight_decay = 0.0005
 
-model.add(Conv2D(32, (3, 3), padding="same", input_shape=input_shape))
-model.add(Activation("relu"))
-model.add(BatchNormalization(axis=chanDim))
-model.add(MaxPooling2D(pool_size=(3, 3)))
-model.add(Dropout(0.25))
-
-model.add(Conv2D(64, (3, 3), padding="same"))
-model.add(Activation("relu"))
-model.add(BatchNormalization(axis=chanDim))
-model.add(Conv2D(64, (3, 3), padding="same"))
-model.add(Activation("relu"))
-model.add(BatchNormalization(axis=chanDim))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
-
-# (CONV => RELU) * 2 => POOL
-model.add(Conv2D(128, (3, 3), padding="same"))
-model.add(Activation("relu"))
-model.add(BatchNormalization(axis=chanDim))
-model.add(Conv2D(128, (3, 3), padding="same"))
-model.add(Activation("relu"))
-model.add(BatchNormalization(axis=chanDim))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Dropout(0.25))
-
-# first (and only) set of FC => RELU layers
-model.add(Flatten())
-model.add(Dense(1024))
-model.add(Activation("relu"))
+model.add(Conv2D(64, (3, 3), padding='same',
+         input_shape=input_shape,kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
 model.add(BatchNormalization())
+model.add(Dropout(0.3))
+
+model.add(Conv2D(64, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(128, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+
+model.add(Conv2D(128, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+
+model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+
+model.add(Conv2D(256, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+
+model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+
+model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+
+model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+
+model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+
+model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+model.add(Dropout(0.4))
+
+model.add(Conv2D(512, (3, 3), padding='same',kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+
+model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Dropout(0.5))
 
-# use a *softmax* activation for single-label classification
-# and *sigmoid* activation for multi-label classification
+model.add(Flatten())
+model.add(Dense(512,kernel_regularizer=regularizers.l2(weight_decay)))
+model.add(Activation('relu'))
+model.add(BatchNormalization())
+
+model.add(Dropout(0.5))
 model.add(Dense(classes_num))
 model.add(Activation('softmax'))
 
-opt = Adam(lr=1e-3, decay=1e-3 / epochs)
+sgd = optimizers.SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
 
-model.compile(loss="binary_crossentropy", optimizer=opt,
-	metrics=["accuracy"])
+model.compile(loss="binary_crossentropy", optimizer=sgd,
+  metrics=["accuracy"])
 
 # Data pre_processing
 train_datagen = ImageDataGenerator(
@@ -103,6 +145,7 @@ train_datagen = ImageDataGenerator(
     height_shift_range=0.1,
     shear_range=0.2,
     zoom_range=0.2,
+    rotation_range=15,
     horizontal_flip=True)
 
 test_datagen = ImageDataGenerator(rescale=1. /255)
@@ -138,10 +181,12 @@ model.fit_generator(
 )
 
 # Save model
-target_dir = './models/'
+target_dir = './models'
 if not os.path.exists(target_dir):
   os.mkdir(target_dir)
 model.save('./models/model.h5')
 model.save_weights('./models/weights.h5')
+model.save('/Users/younhunjoung/deeplearning_projects/keras_flower/models/model.h5')
+model.save_weights('/Users/younhunjoung/deeplearning_projects/keras_flower/models/weights.h5')
 
 
