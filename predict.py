@@ -3,8 +3,8 @@ import numpy as np
 from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from keras.models import Sequential, load_model
 
-img_width = 224
-img_height = 224
+img_width = 200
+img_height = 180
 
 model_path = './models/model.h5'
 model_weights_path = './models/weights.h5'

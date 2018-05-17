@@ -18,7 +18,7 @@ import tensorflow as tf
 graph = tf.get_default_graph()
 #############################
 
-img_width, img_height = 150, 150
+img_width, img_height = 200, 180
 model_path = './models/model.h5'
 model_weights_path = './models/weights.h5'
 model = load_model(model_path)
@@ -45,13 +45,18 @@ def predict(file):
     
     result = array[0]
     answer = np.argmax(result)
-    print('argmax successed')
     if answer == 0:
-        print("Label: Anthurium")
+        print("Label: 개나리")
     elif answer == 1:
-	    print("Label: Gazania")
+        print("Label: 동백")
     elif answer == 2:
-	    print("Label: Rose")
+        print("Label: 목화")
+    elif answer == 3:
+        print("Label: 백합")
+    elif answer == 4:
+        print("Label: 안투리움")
+    elif answer == 5:
+        print("Label: 장미")
     return answer
 
 def my_random_string(string_length=10):
@@ -94,11 +99,18 @@ def upload_file():
             file.save(file_path)
             result = predict(file_path)
             if result == 0:
-                label = 'Anthurium'
+                label = '개나리'
             elif result == 1:
-                label = 'Gazania'			
+                label = '동백'			
             elif result == 2:
-                label = 'Rose'
+                label = '목화'
+            elif result == 3:
+                label = '백합'
+            elif result == 4:
+                label = '안투리움'
+            elif result == 5:
+                label = '장미'
+            
             print(result)
             print(file_path)
             filename = my_random_string(6) + filename
