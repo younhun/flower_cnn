@@ -18,7 +18,7 @@ if argc > 1 and (argvs[1] == "--development" or argvs[1] == "-d"):
 if DEV:
   epochs = 2
 else:
-  epochs = 150
+  epochs = 200
 
 train_data_path = './data/train'
 validation_data_path = './data/validation'
@@ -44,12 +44,12 @@ samples_per_epoch = train_data_len // batch_size
 validation_steps = validation_data_len // batch_size
 
 classes_num = 8
-lr = 0.0004
+lr = 0.0002
 
 model = CNN2D(classes_num, image_shape)
 
 # Early stop
-earlystop = EarlyStopping(monitor='val_acc', min_delta=0.0001, patience=10, \
+earlystop = EarlyStopping(monitor='val_acc', min_delta=0.0001, patience=30, \
                           verbose=1, mode='auto')
 
 # optimization details
