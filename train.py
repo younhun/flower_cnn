@@ -2,13 +2,10 @@ import sys
 import os
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
-from keras.models import Sequential
-from keras.layers import Dropout, Flatten, Dense, Activation
-from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
 from keras import callbacks
-from keras.constraints import max_norm
-from keras.optimizers import SGD
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+
+from model import CNN2D
 
 
 DEV = False
@@ -21,7 +18,7 @@ if argc > 1 and (argvs[1] == "--development" or argvs[1] == "-d"):
 if DEV:
   epochs = 2
 else:
-  epochs = 100
+  epochs = 150
 
 train_data_path = './data/train'
 validation_data_path = './data/validation'
@@ -39,7 +36,8 @@ for _, _, files in os.walk(validation_data_path):
 """
 Parameters
 """
-img_width, img_height = 150, 150
+img_width, img_height = 80, 80
+image_shape = (img_width, img_height, 3)
 batch_size = 32
 
 samples_per_epoch = train_data_len // batch_size
@@ -48,32 +46,28 @@ validation_steps = validation_data_len // batch_size
 classes_num = 8
 lr = 0.0004
 
-model = Sequential()
-model.add(Conv2D(64, (3, 3), padding ="same", input_shape=(img_width, img_height, 3)))
-model.add(Activation("relu"))
-model.add(MaxPooling2D(2, 2))
+model = CNN2D(classes_num, image_shape)
 
-model.add(Conv2D(128, (2, 2), padding ="same"))
-model.add(Activation("relu"))
-model.add(MaxPooling2D(2, 2))
+# Early stop
+earlystop = EarlyStopping(monitor='val_acc', min_delta=0.0001, patience=10, \
+                          verbose=1, mode='auto')
 
-model.add(Flatten())
-model.add(Dense(512))
-model.add(Activation("relu"))
-model.add(Dropout(0.5))
-model.add(Dense(classes_num, activation='softmax'))
-
-
+# optimization details
 model.compile(loss='categorical_crossentropy',
               optimizer=optimizers.RMSprop(lr=lr),
               metrics=['accuracy'])
 
+model.summary()
 
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
     shear_range=0.2,
     zoom_range=0.2,
-    horizontal_flip=True)
+    rotation_range=40,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    horizontal_flip=True,
+    vertical_flip = True)
 
 test_datagen = ImageDataGenerator(rescale=1. / 255)
 
@@ -94,7 +88,7 @@ Tensorboard log
 """
 log_dir = './tf-log/'
 tb_cb = callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0)
-cbks = [tb_cb]
+cbks = [tb_cb, earlystop]
 
 
 model.fit_generator(
@@ -110,6 +104,7 @@ if not os.path.exists(target_dir):
   os.mkdir(target_dir)
 model.save('./models/model.h5')
 model.save_weights('./models/weights.h5')
+
 
 
 
