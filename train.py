@@ -18,7 +18,7 @@ if argc > 1 and (argvs[1] == "--development" or argvs[1] == "-d"):
 if DEV:
   epochs = 2
 else:
-  epochs = 200
+  epochs = 100
 
 train_data_path = './data/train'
 validation_data_path = './data/validation'
@@ -36,7 +36,7 @@ for _, _, files in os.walk(validation_data_path):
 """
 Parameters
 """
-img_width, img_height = 80, 80
+img_width, img_height = 224, 224
 image_shape = (img_width, img_height, 3)
 batch_size = 32
 
@@ -46,11 +46,19 @@ validation_steps = validation_data_len // batch_size
 classes_num = 8
 lr = 0.0002
 
-model = CNN2D(classes_num, image_shape)
+MODEL_WEIGHTS_FILE = './models3/weights'
 
+
+
+model = CNN2D(classes_num, image_shape)
 # Early stop
-earlystop = EarlyStopping(monitor='val_acc', min_delta=0.0001, patience=30, \
+earlystop = EarlyStopping(monitor='val_acc', min_delta=0.0001, patience=10, \
                           verbose=1, mode='auto')
+
+# save only best
+MODEL_WEIGHTS_FILE =MODEL_WEIGHTS_FILE + '{epoch:02d}-{val_loss:.4f}.h5'
+
+onlybest =  ModelCheckpoint(MODEL_WEIGHTS_FILE, save_best_only=True, verbose=1, monitor='val_loss')
 
 # optimization details
 model.compile(loss='categorical_crossentropy',
@@ -88,7 +96,7 @@ Tensorboard log
 """
 log_dir = './tf-log/'
 tb_cb = callbacks.TensorBoard(log_dir=log_dir, histogram_freq=0)
-cbks = [tb_cb, earlystop]
+cbks = [tb_cb, earlystop, onlybest]
 
 
 model.fit_generator(
@@ -99,11 +107,11 @@ model.fit_generator(
     callbacks=cbks,
     validation_steps=validation_steps)
 
-target_dir = './models/'
+target_dir = './models3/'
 if not os.path.exists(target_dir):
   os.mkdir(target_dir)
-model.save('./models/model.h5')
-model.save_weights('./models/weights.h5')
+model.save('./models3/model.h5')
+model.save_weights(MODEL_WEIGHTS_FILE)
 
 
 

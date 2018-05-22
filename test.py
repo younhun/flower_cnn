@@ -3,11 +3,11 @@ import numpy as np
 from keras.preprocessing.image import load_img, img_to_array
 from keras.models import load_model
 
-img_width = 150
-img_height = 150
+img_width = 224
+img_height = 224
 
-model_path = './models/model.h5'
-model_weights_path = './models/weights.h5'
+model_path = './models2/model.h5'
+model_weights_path = './models2/weights.h5'
 model = load_model(model_path)
 model.load_weights(model_weights_path)
 
