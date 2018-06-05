@@ -30,21 +30,23 @@ class Upload(Resource):
 			result = predict.predict(file)
 
 			if result[0] == 0:
-			    label = "안투리움"
+			    label = "개나리"
 			elif result[0] == 1:
-			    label =  "Ball Moss"
+			    label =  "나팔꽃"
 			elif result[0] == 2:
-			    label = '참매발톱'
+			    label = '데이지'
 			elif result[0] == 3:
-			    label = '가자니아'
+			    label = '목화'
 			elif result[0] == 4:
-			    label = "장미"
+			    label = "백일홍"
 			elif result[0] == 5:
-			    label = "해바라기"
+			    label = "백합"
 			elif result[0] == 6:
-			    label = "wall flower"
+			    label = "아부틸론"
 			elif result[0] == 7:
-			    label = "yellow iris"
+			    label = "장미"
+			elif result[0] == 8:
+				label = '해바라기'
 
 			print(label)
 
