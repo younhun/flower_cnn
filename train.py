@@ -43,10 +43,10 @@ batch_size = 32
 samples_per_epoch = train_data_len // batch_size
 validation_steps = validation_data_len // batch_size
 
-classes_num = 8
+classes_num = 9
 lr = 0.0002
 
-MODEL_WEIGHTS_FILE = './models3/weights'
+MODEL_WEIGHTS_FILE = './models/weights'
 
 
 
@@ -107,10 +107,10 @@ model.fit_generator(
     callbacks=cbks,
     validation_steps=validation_steps)
 
-target_dir = './models3/'
+target_dir = './models/'
 if not os.path.exists(target_dir):
   os.mkdir(target_dir)
-model.save('./models3/model.h5')
+model.save('./models/model.h5')
 model.save_weights(MODEL_WEIGHTS_FILE)
 
 

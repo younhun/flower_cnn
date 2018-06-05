@@ -4,8 +4,8 @@ from keras.models import load_model
 import tensorflow as tf
 
 img_width, img_height = 224, 224
-model_path = './models2/model.h5'
-model_weights_path = './models2/weights.h5'
+model_path = './models/model.h5'
+model_weights_path = './models/weights.h5'
 model = load_model(model_path)
 model.load_weights(model_weights_path)
 
